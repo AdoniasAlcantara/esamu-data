@@ -59,6 +59,18 @@ public class Emergency implements Serializable {
 	@Column(name = "end_time") @Temporal(TemporalType.TIMESTAMP)
 	private Date end;
 	
+	public Emergency() {}
+	
+	// Constructor for summary data. Use it on "read-only" objects
+	public Emergency(long id, String username, String userPhone, Date start, Status status) {
+		this.id = id;
+		this.start = start;
+		this.status = status;
+		user = new User();
+		user.setPhone(userPhone);
+		user.setName(username);
+	}
+	
 	// Getters
 	
 	public long getId() {

@@ -97,7 +97,12 @@ public class EmergencyDaoTest {
 	}
 	
 	@Test
-	public void test6SaveChanges() {
+	public void test6Summary() {
+		assertNotNull(eDao.summary(emergency.getStatus()));
+	}
+	
+	@Test
+	public void test7SaveChanges() {
 		Emergency em = eDao.find(emergency.getId());
 		em.setImei("000000000000000");
 		em.setStatus(Status.PROGRESS);
@@ -107,7 +112,7 @@ public class EmergencyDaoTest {
 	}
 	
 	@Test
-	public void test7Remove() {
+	public void test8Remove() {
 		assertNotNull(eDao.remove(emergency.getId()));
 		UserDao uDao = new UserDao();
 		assertNotNull(uDao.remove(emergency.getUser().getId()));

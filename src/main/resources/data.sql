@@ -14,7 +14,6 @@ CREATE TABLE tb_location (
 	latitude		DOUBLE NOT NULL,
 	longitude		DOUBLE NOT NULL,
 	addr			VARCHAR(255),
-	district		VARCHAR(50),
 	city			VARCHAR(50),
 	stat			VARCHAR(50),
 	country			VARCHAR(50),

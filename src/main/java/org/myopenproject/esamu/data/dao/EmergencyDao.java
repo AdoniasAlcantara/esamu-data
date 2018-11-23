@@ -73,6 +73,16 @@ public class EmergencyDao extends AbstractDao<Emergency, Long> {
 		return emergencies;
 	}
 	
+	public List<Emergency> summary(Status status) {
+		String queryStr = "SELECT NEW org.myopenproject.esamu.data.Emergency"
+				+ "(e.id, u.name, u.phone, e.start, e.status) "
+				+ "FROM Emergency e INNER JOIN e.user u "
+				+ "WHERE e.status = :status";
+		TypedQuery<Emergency> query = getEntityManager().createQuery(queryStr, Emergency.class);
+		query.setParameter("status", status);
+		return query.getResultList();
+	}
+	
 	public static void setResourcesPath(String resPath) {
 		EmergencyDao.resPath = resPath + "/";
 	}
