@@ -214,26 +214,5 @@ public class Emergency implements Serializable {
 		return true;
 	}
 
-	public enum Status {
-		PENDENT, PROGRESS, FINISHED, CANCELED;
-		
-		public Status fromString(String status) {
-			switch (status) {
-			case "PENDENT":
-				return PENDENT;
-				
-			case "PROGRESS":
-				return PROGRESS;
-				
-			case "FINISHED":
-				return FINISHED;
-				
-			case "CANCELED":
-				return CANCELED;
-				
-			default:
-				return PENDENT;
-			}
-		}
-	}
+	public enum Status {PENDENT, PROGRESS, FINISHED, CANCELED}
 }
