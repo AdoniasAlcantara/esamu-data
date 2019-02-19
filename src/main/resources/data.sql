@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS esamu;
+USE esamu;
+
 DROP TABLE IF EXISTS tb_user;
 DROP TABLE IF EXISTS tb_location;
 DROP TABLE IF EXISTS tb_emergency;
@@ -22,10 +25,13 @@ CREATE TABLE tb_location (
 
 CREATE TABLE tb_emergency(
 	emergency_id	BIGINT AUTO_INCREMENT PRIMARY KEY,
-	user_id			CHAR(28) NOT NULL REFERENCES tb_user (user_id),
-	location_id		BIGINT REFERENCES tb_location (location_id),
+	user_id			CHAR(28) NOT NULL,
+	location_id		BIGINT,
 	imei			CHAR(15) NOT NULL,
 	status			CHAR(10) NOT NULL,
 	start_time		TIMESTAMP DEFAULT current_timestamp NOT NULL,
-	end_time		TIMESTAMP NULL
+	end_time		TIMESTAMP NULL,
+	attach			INT NOT NULL,
+	FOREIGN KEY (user_id) REFERENCES tb_user (user_id),
+	FOREIGN KEY (location_id) REFERENCES tb_location (location_id)
 );

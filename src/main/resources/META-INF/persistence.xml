@@ -8,7 +8,17 @@
 		
 		<properties>
 			<!-- JPA -->
-			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/esamu?useSSL=false" />
+			
+			<!-- Production -->
+			<!--
+			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/esamu?useSSL=false&amp;serverTimezone=UTC&amp;useTimezone=true" /> 	
+			<property name="javax.persistence.jdbc.user" value="esamu"/>
+			<property name="javax.persistence.jdbc.password" value="A9tuN4URRvL3CtJA"/>
+			<property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
+			 -->
+			
+			<!-- Test -->
+			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/esamu?useSSL=false" />
 			<property name="javax.persistence.jdbc.user" value="root"/>
 			<property name="javax.persistence.jdbc.password" value="12345"/>
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />

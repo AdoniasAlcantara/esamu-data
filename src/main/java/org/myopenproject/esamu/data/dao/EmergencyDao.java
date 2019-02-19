@@ -2,10 +2,13 @@ package org.myopenproject.esamu.data.dao;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import org.myopenproject.esamu.data.Emergency;
@@ -51,12 +54,14 @@ public class EmergencyDao extends AbstractDao<Emergency, Long> {
 		Emergency emergency = super.remove(key);
 		
 		if (emergency != null) {
-			String path = resPath + key + ".jpg";
+			Path path = Paths.get(resPath + key + ".jpg");
 			
-			try {
-				Files.delete(Paths.get(path));
-			} catch (IOException e) {
-				throw new RuntimeException("cannot delete resources from Emergency " + key, e);
+			if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+				try {
+					Files.delete(path);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 		
@@ -74,13 +79,21 @@ public class EmergencyDao extends AbstractDao<Emergency, Long> {
 	}
 	
 	public List<Emergency> summary(Status status) {
-		String queryStr = "SELECT NEW org.myopenproject.esamu.data.Emergency"
+		String queryStr = "SELECT NEW Emergency"
 				+ "(e.id, u.name, u.phone, e.start, e.status) "
 				+ "FROM Emergency e INNER JOIN e.user u "
-				+ "WHERE e.status = :status";
+				+ "WHERE e.status = :status "
+				+ "ORDER BY e.id";
 		TypedQuery<Emergency> query = getEntityManager().createQuery(queryStr, Emergency.class);
 		query.setParameter("status", status);
 		return query.getResultList();
+	}
+	
+	public void clean() {
+		getEntityManager().getTransaction().begin();
+		Query query = getEntityManager().createQuery("DELETE FROM Emergency");
+		query.executeUpdate();
+		getEntityManager().getTransaction().commit();
 	}
 	
 	public static void setResourcesPath(String resPath) {

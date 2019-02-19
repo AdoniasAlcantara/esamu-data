@@ -35,7 +35,7 @@ public class Location {
 	@Size(max = 50)
 	private String city;
 	
-	@Column(name = "stat", columnDefinition = "VARCHAR(50)")
+	@Column(name = "state", columnDefinition = "VARCHAR(50)")
 	@Size(max = 50)
 	private String state;
 	

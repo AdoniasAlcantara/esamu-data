@@ -59,6 +59,9 @@ public class Emergency implements Serializable {
 	@Column(name = "end_time") @Temporal(TemporalType.TIMESTAMP)
 	private Date end;
 	
+	@Column(name = "attach", nullable = true)
+	private int attachment = -1;
+	
 	public Emergency() {}
 	
 	// Constructor for summary data. Use it on "read-only" objects
@@ -105,6 +108,10 @@ public class Emergency implements Serializable {
 		return end;
 	}
 	
+	public int getAttachment() {
+		return attachment;
+	}
+	
 	// Setters
 
 	public void setId(long id) {
@@ -138,6 +145,10 @@ public class Emergency implements Serializable {
 	public void setEnd(Date end) {
 		this.end = end;
 	}
+	
+	public void setAttachment(int attachment) {
+		this.attachment = attachment;
+	}
 
 	@Override
 	public String toString() {
@@ -150,6 +161,7 @@ public class Emergency implements Serializable {
 			.append(", status=").append(status)
 			.append(", start=").append(start)
 			.append(", end=").append(end)
+			.append(", attachment").append(attachment)
 			.append("]");
 		
 		return builder.toString();
@@ -159,6 +171,8 @@ public class Emergency implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		
+		result = prime * result + attachment;
 		result = prime * result + (int) (id ^ (id >>> 32));
 		result = prime * result + ((imei == null) ? 0 : imei.hashCode());
 		result = prime * result + ((location == null) ? 0 : location.hashCode());
@@ -209,6 +223,9 @@ public class Emergency implements Serializable {
 			if (other.user != null)
 				return false;
 		} else if (!user.equals(other.user))
+			return false;
+			
+		if (attachment != other.attachment)
 			return false;
 		
 		return true;
