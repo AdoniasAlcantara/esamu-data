@@ -1,5 +1,11 @@
 package org.myopenproject.esamu.data.dao;
 
-import org.myopenproject.esamu.data.User;
+import javax.persistence.EntityManager;
 
-public class UserDao extends AbstractDao<User, String> {}
+import org.myopenproject.esamu.data.model.User;
+
+public class UserDao extends AbstractDao<User, String> {
+	public UserDao(EntityManager entityManager) {
+		super(entityManager);
+	}
+}

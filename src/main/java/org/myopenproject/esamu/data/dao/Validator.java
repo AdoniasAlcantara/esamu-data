@@ -18,7 +18,6 @@ public class Validator {
 	}
 	
 	public static <T> Set<ConstraintViolation<T>> validate(T obj) {
-		Set<ConstraintViolation<T>> violations = validator.validate(obj);
-		return violations.isEmpty() ? null : violations;
+		return validator.validate(obj);
 	}
 }

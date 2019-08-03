@@ -1,38 +1,41 @@
 package org.myopenproject.esamu.data.dao;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 
-import org.myopenproject.esamu.data.Emergency;
-import org.myopenproject.esamu.data.Emergency.Status;
-import org.myopenproject.esamu.data.Multimedia;
+import org.myopenproject.esamu.data.model.Emergency;
+import org.myopenproject.esamu.data.model.Emergency.Status;
+import org.myopenproject.esamu.data.model.Multimedia;
 
 public class EmergencyDao extends AbstractDao<Emergency, Long> {
 	private static String resPath = "./";
 	
+	public EmergencyDao(EntityManager entityManager) {
+		super(entityManager);
+	}
+	
 	@Override
-	public void save(Emergency emergency) {
-		EntityManager manager = getEntityManager(); 
+	public Emergency save(Emergency emergency) {
+		EntityManager manager = getEntityManager();
 		
 		try {
-			manager.getTransaction().begin();
 			manager.persist(emergency);
 			manager.flush();
 			String path = resPath + emergency.getId() + ".jpg";
 			Files.write(Paths.get(path), emergency.getMultimedia().getPicture());
-			manager.getTransaction().commit();
 		} catch (IOException e) {
-			manager.getTransaction().rollback();
 			throw new RuntimeException("Cannot write resources to Emergency " + emergency.getId(), e);
 		}
+		
+		return emergency;
 	}
 	
 	@Override
@@ -50,10 +53,8 @@ public class EmergencyDao extends AbstractDao<Emergency, Long> {
 	}
 	
 	@Override
-	public Emergency remove(Long key) {
-		Emergency emergency = super.remove(key);
-		
-		if (emergency != null) {
+	public boolean remove(Long key) {		
+		if (super.remove(key)) {
 			Path path = Paths.get(resPath + key + ".jpg");
 			
 			if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
@@ -63,37 +64,47 @@ public class EmergencyDao extends AbstractDao<Emergency, Long> {
 					throw new RuntimeException(e);
 				}
 			}
+			
+			return true;
 		}
 		
-		return emergency;
+		return false;
 	}
 	
 	public List<Emergency> findByStatus(Status status) {
-		TypedQuery<Emergency> query = getEntityManager()
-				.createQuery("SELECT e FROM Emergency e WHERE e.status = :status", Emergency.class);
-		query.setParameter("status", status);
-		List<Emergency> emergencies = query.getResultList();
-		readResources(emergencies);
+		String jpql = "FROM Emergency e WHERE e.status = :status";
+		List<Emergency> emergencies = getEntityManager().createQuery(jpql, Emergency.class)
+				.setParameter("status", status)
+				.getResultList();
 		
+		readResources(emergencies);
 		return emergencies;
 	}
 	
-	public List<Emergency> summary(Status status) {
-		String queryStr = "SELECT NEW Emergency"
+	public List<Emergency> summary(Status ...status) {
+		String jpql = "SELECT NEW " + Emergency.class.getName()
 				+ "(e.id, u.name, u.phone, e.start, e.status) "
-				+ "FROM Emergency e INNER JOIN e.user u "
-				+ "WHERE e.status = :status "
+				+ "FROM Emergency e JOIN e.user u "
+				+ "WHERE e.status in(:status)"
 				+ "ORDER BY e.id";
-		TypedQuery<Emergency> query = getEntityManager().createQuery(queryStr, Emergency.class);
-		query.setParameter("status", status);
-		return query.getResultList();
+		
+		return getEntityManager().createQuery(jpql, Emergency.class)
+				.setParameter("status", Arrays.asList(status))
+				.getResultList();
 	}
 	
 	public void clean() {
-		getEntityManager().getTransaction().begin();
-		Query query = getEntityManager().createQuery("DELETE FROM Emergency");
-		query.executeUpdate();
-		getEntityManager().getTransaction().commit();
+		getEntityManager().createQuery("DELETE FROM Location").executeUpdate();
+		getEntityManager().createQuery("DELETE FROM Emergency").executeUpdate();
+		getEntityManager().createQuery("DELETE FROM User").executeUpdate();
+		
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(resPath))) {
+			for (Path entry : stream) {
+				Files.deleteIfExists(entry);
+			}
+		} catch (IOException e) {
+			// Ignore
+		}
 	}
 	
 	public static void setResourcesPath(String resPath) {

@@ -9,44 +9,47 @@ import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import javax.persistence.TypedQuery;
 
-public class AbstractDao<T, K> implements Dao<T, K>, AutoCloseable {
+public class AbstractDao<T, K> implements Dao<T, K> {
 	private Class<T> type;
 	private Field key;
 	private EntityManager manager;
 
 	@SuppressWarnings("unchecked")
-	public AbstractDao() {
-		manager = JpaFactory.getInstance().getEntityManager();
+	public AbstractDao(EntityManager entityManager) {
+		manager = entityManager;
 		type = (Class<T>) ((ParameterizedType) getClass()
-				.getGenericSuperclass()).getActualTypeArguments()[0];	
+				.getGenericSuperclass()).getActualTypeArguments()[0];
 		
 		Field[] fields = type.getDeclaredFields();
 		
 		for (Field f : fields) {
-			Annotation[] annotations = f.getAnnotationsByType(Id.class);
+			Annotation annotation = f.getAnnotation(Id.class);
 			
-			if (annotations.length > 0) {				
+			if (annotation != null) {				
 				key = f;
 				key.setAccessible(true);
 				break;
 			}
 		}
+		
+		if (key == null) {
+			throw new IllegalStateException("Type " + type.getName() + " doesn't an @Id defined");
+		}
 	}
 
 	@Override
-	public void save(T obj) {
-		manager.getTransaction().begin();
-		
+	public T save(T obj) {		
 		try {
-			if (manager.find(type, key.get(obj)) == null)
-				manager.persist(obj);
-			else
-				manager.merge(obj);
-			
-			manager.getTransaction().commit();
+			if (manager.find(type, key.get(obj)) == null) {
+				manager.persist(obj);				
+			} else {
+				obj = manager.merge(obj);
+			}
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
+		
+		return obj;
 	}
 
 	@Override
@@ -61,18 +64,15 @@ public class AbstractDao<T, K> implements Dao<T, K>, AutoCloseable {
 	}
 
 	@Override
-	public T remove(K key) {
-		manager.getTransaction().begin();
+	public boolean remove(K key) {
 		T obj = manager.find(type, key);
-		manager.remove(obj);
-		manager.getTransaction().commit();
 		
-		return obj;
-	}
-
-	@Override
-	public void close() {
-		manager.close();
+		if (obj == null) {
+			return false;
+		}
+		
+		manager.remove(obj);
+		return true;
 	}
 
 	protected EntityManager getEntityManager() {

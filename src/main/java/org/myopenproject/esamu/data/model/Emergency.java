@@ -1,4 +1,4 @@
-package org.myopenproject.esamu.data;
+package org.myopenproject.esamu.data.model;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -18,53 +18,48 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.PositiveOrZero;
 
 @Entity
 @Table(name = "tb_emergency")
 public class Emergency implements Serializable {
-	private static final long serialVersionUID = -4650383164897458340L;
+	private static final long serialVersionUID = 1L;
 	
-	@Id @Column(name = "emergency_id")
+	@Id
+	@Column(name = "emergency_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@PositiveOrZero
 	private long id;
 	
-	@ManyToOne @JoinColumn(name = "user_id")
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "user_id")
 	private User user;
 	
 	@Column(columnDefinition = "CHAR(15)")
-	@Pattern(regexp = "\\d{15}$")
 	private String imei;
 	
-	@OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, optional = false)
-	@JoinColumn(name = "location_id")
-	@Valid
+	@OneToOne(mappedBy = "emergency", optional = false, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
 	private Location location;
 	
 	@Transient
-	@NotNull @Valid
 	private Multimedia multimedia;
 	
-	@Column(columnDefinition = "CHAR(10)") @Enumerated(EnumType.STRING)
-	@NotNull
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
 	private Status status;
 	
-	@Column(name = "start_time") @Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "start_time", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date start;
 	
-	@Column(name = "end_time") @Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "end_time")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date end;
 	
-	@Column(name = "attach", nullable = true)
+	@Column(name = "attach")
 	private int attachment = -1;
 	
 	public Emergency() {}
 	
-	// Constructor for summary data. Use it on "read-only" objects
+	// Constructor for summary data. For use on "read-only" objects
 	public Emergency(long id, String username, String userPhone, Date start, Status status) {
 		this.id = id;
 		this.start = start;
@@ -152,35 +147,24 @@ public class Emergency implements Serializable {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Emergency [id=").append(id)
-			.append(", user=").append(user)
-			.append(", imei=").append(imei)
-			.append(", location=").append(location)
-			.append(", multimedia=").append(multimedia)
-			.append(", status=").append(status)
-			.append(", start=").append(start)
-			.append(", end=").append(end)
-			.append(", attachment").append(attachment)
-			.append("]");
+		StringBuilder builder = new StringBuilder("Emergency [")
+				.append("id=").append(id)
+				.append(", user=").append(user)
+				.append(", imei=").append(imei)
+				.append(", location=").append(location)
+				.append(", multimedia=").append(multimedia)
+				.append(", status=").append(status)
+				.append(", start=").append(start)
+				.append(", end=").append(end)
+				.append(", attachment").append(attachment)
+				.append("]");
 		
 		return builder.toString();
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		
-		result = prime * result + attachment;
-		result = prime * result + (int) (id ^ (id >>> 32));
-		result = prime * result + ((imei == null) ? 0 : imei.hashCode());
-		result = prime * result + ((location == null) ? 0 : location.hashCode());
-		result = prime * result + ((multimedia == null) ? 0 : multimedia.hashCode());
-		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result + ((user == null) ? 0 : user.hashCode());
-		
-		return result;
+		return 31 + (int) (id ^ (id >>> 32));
 	}
 
 	@Override
@@ -190,42 +174,13 @@ public class Emergency implements Serializable {
 		
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Emergency))
+		
+		if (getClass() != obj.getClass())
 			return false;
 		
 		Emergency other = (Emergency) obj;
 		
 		if (id != other.id)
-			return false;
-		
-		if (imei == null) {
-			if (other.imei != null)
-				return false;
-		} else if (!imei.equals(other.imei))
-			return false;
-		
-		if (location == null) {
-			if (other.location != null)
-				return false;
-		} else if (!location.equals(other.location))
-			return false;
-		
-		if (multimedia == null) {
-			if (other.multimedia != null)
-				return false;
-		} else if (!multimedia.equals(other.multimedia))
-			return false;
-		
-		if (status != other.status)
-			return false;
-		
-		if (user == null) {
-			if (other.user != null)
-				return false;
-		} else if (!user.equals(other.user))
-			return false;
-			
-		if (attachment != other.attachment)
 			return false;
 		
 		return true;

@@ -1,4 +1,4 @@
-package org.myopenproject.esamu.data;
+package org.myopenproject.esamu.data.model;
 
 import java.util.Arrays;
 

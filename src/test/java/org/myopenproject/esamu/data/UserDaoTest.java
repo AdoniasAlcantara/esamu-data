@@ -1,25 +1,29 @@
 package org.myopenproject.esamu.data;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import javax.persistence.EntityManager;
+
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.myopenproject.esamu.data.dao.JpaUtil;
 import org.myopenproject.esamu.data.dao.UserDao;
-import org.myopenproject.esamu.data.dao.Validator;
+import org.myopenproject.esamu.data.model.User;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UserDaoTest 
 {
 	static User user;
 	static UserDao dao;
+	static EntityManager entityManager;
 	
 	@BeforeClass
 	public static void init() {
@@ -30,29 +34,36 @@ public class UserDaoTest
 		user.setNotificationKey("b128e848-25a2-4f82-9bf4-ac8c63e4882d");
 	}
 	
+	@AfterClass
+	public static void cleanUp() {
+		JpaUtil.close();
+	}
+	
 	@Before
-	public void newUserDao() {
-		dao = new UserDao();
+	public void beforeEach() {
+		entityManager = JpaUtil.getEntityManager();
+		dao = new UserDao(entityManager);
 	}
 	
 	@After
-	public void closeUserDao() {
-		dao.close();
+	public void afterEach() {
+		entityManager.close();
 	}
-	
-    @Test
-    public void test1Validation() {
-        assertNull(Validator.validate(user));
-    }
     
     @Test
     public void test2Save() {
+    	entityManager.getTransaction().begin();
     	dao.save(user);
+    	entityManager.getTransaction().commit();
     }
     
     @Test
     public void test3Find() {
-    	assertEquals(user, dao.find(user.getId()));
+    	User other = dao.find(user.getId());
+    	assertEquals(user.getId(), other.getId());
+    	assertEquals(user.getName(), other.getName());
+    	assertEquals(user.getPhone(), other.getPhone());
+    	assertEquals(user.getNotificationKey(), other.getNotificationKey());
     }
     
     @Test
@@ -62,14 +73,23 @@ public class UserDaoTest
     
     @Test
     public void test5SaveChanges() {
-    	User u = dao.find(user.getId());
-    	u.setName("Other name");
-    	dao.save(u);
-    	assertNotEquals(user, dao.find(u.getId()));
+    	entityManager.getTransaction().begin();
+    	User other = dao.find(user.getId());
+    	other.setName("Other name");
+    	entityManager.getTransaction().commit();
+    	entityManager.clear();
+    	
+    	other = dao.find(other.getId());
+    	assertNotNull(other);
+    	assertEquals("Other name", other.getName());
     }
     
     @Test
     public void test6Remove() {
-    	assertNotNull(dao.remove(user.getId()));
+    	entityManager.getTransaction().begin();
+    	assertTrue(dao.remove(user.getId()));
+    	entityManager.getTransaction().commit();
+    	
+    	assertNull(dao.find(user.getId()));
     }
 }
